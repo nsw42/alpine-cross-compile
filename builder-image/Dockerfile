@@ -2,7 +2,7 @@
 
 FROM --platform=$BUILDPLATFORM tonistiigi/xx AS xx
 
-FROM --platform=$BUILDPLATFORM golang:1.20.12-alpine3.18
+FROM --platform=$BUILDPLATFORM golang:1.22.0-alpine3.19
 RUN apk add clang git lld pkgconfig
 COPY --from=xx / /
 ARG TARGETPLATFORM
