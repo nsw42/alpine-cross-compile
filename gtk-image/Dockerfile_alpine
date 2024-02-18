@@ -1,0 +1,13 @@
+# vim: ft=Dockerfile
+ARG CROSS_BUILDER=go-cross-builder
+FROM --platform=$BUILDPLATFORM ${CROSS_BUILDER} AS crossbuilder
+ARG TARGETPLATFORM
+COPY gtk-image-lib-builder /go/gtk-image-lib-builder
+
+# TODO: It'd be good to extract the pkg-config path from xx
+RUN xx-apk add gtk4.0 gtk4.0-dev
+RUN xx-apk add gobject-introspection-dev
+RUN xx-apk add shared-mime-info
+ENV PKG_CONFIG_PATH=/armv7-alpine-linux-musleabihf/usr/share/pkgconfig
+ENV TARGETPLATFORM=${TARGETPLATFORM}
+RUN cd /go/gtk-image-lib-builder; go mod tidy; go build -v .

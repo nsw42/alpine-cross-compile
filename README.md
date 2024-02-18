@@ -4,47 +4,75 @@
 
 This repository supports GTK-based golang applications for the Raspberry Pi. Building the go gtk4 bindings (from <https://github.com/diamondburned/gotk4>) ended up using more RAM than my Pi's 1GB. This set of Docker images builds on <https://github.com/tonistiigi/xx> to cross-compile from a host machine (in my case, my MacBook Pro) to the Pi.
 
-It supports both 32-bit (`armhf`) and 64-bit (`arm64`) ARM builds. It should be possible to get other platforms to work too, with a minor tweak to gtk-image/Dockerfile.
+It supports both 32-bit (`armhf`) and 64-bit (`arm64`) ARM builds. It should be possible to get other platforms to work too, with some minor tweaks.
 
 ## Prerequisites
 
 Stating the obvious, you'll need [Docker](https://www.docker.com/products/docker-desktop/).
 
+## Supported CPUs/OSs
+
+Out-of-the-box, the currently supported platforms are `linux/armhf` and `linux/arm64` on Alpine Linux and Debian. The system is designed to be flexible, so other OSs are supported by following the detailed instructions. (Send a PR to incorporate the support into the mainline?)
+
 ## Simple approach
 
-If you just want to build these Docker images to build an application that relies on these Docker images:
+If you just want to build an application that relies on these Docker images, then invoke the build script specifying your platform (i.e. CPU and OS combination):
 
 ```
 cd alpine-cross-compile
-./build_both.sh PLATFORM
+./build.sh CPU OS
 ```
 
-where PLATFORM is either `linux/armhf` or `linux/arm64`.
+where:
 
-If you don't specify a platform, it will build for both platforms. 
+* CPU is either `armhf` or `arm64`
+* OS is one of `alpine3.19` or `bookworm`
+
+If you don't specify a platform, it will build for all four combinations of (`linux/armhf`,`linux/arm64`)x(Alpine 3.19,Debian Bookworm) platforms.
 
 Expect this to take a while: building the GTK4 bindings takes 15-20 minutes per-platform on an M1 Max MacBook Pro.
 
+(Other versions of Alpine - e.g. `alpine3.18` or `alpine3.20` - should work, as should newer Debian releases, provided that the base image exists in <https://hub.docker.com/_/golang>. However, note that Bullseye (Debian 11) does not include gtk4 as an installable package, and so would require much more effort to get working.)
+
+Docker images `go-cross-builder-OS-CPU` and `gotk-cross-builder-OS-CPU` will be created.
+
 ## Detailed instructions
 
-If you are only building for a single platform, figure out which one (`linux/armhf` or `linux/arm64`) you're building for. `$PLATFORM` is used throughout the instructions below to refer to the appropriate value.
+If the simple approach doesn't work for you - e.g. because you want to build an unsupported combination of CPU and OS - then it's probably possible, by passing additional arguments to the build script.
 
-This repo contains two directories: one that's a generic cross-builder, and one that incorporates the GTK bindings. The second refers to the first, so you need to tag the first. The instructions below use `$CROSS_BUILDER_TAG` to refer to that; as an example, the `build_both.sh` script uses `go-cross-builder-image-linuxarmhf` and `go-cross-builder-image-linuxarm64`. Avoid spaces and slash characters in the tag.
+```
+cd alpine-cross-compile
+./build.sh PLATFORM OSNAME GOLANGBASEIMAGE TAGSUFFIX
+```
 
-You'll likely want to tag the second, too, so you can refer to it when building your application. The instructions below use `$GTK_BUILDER_TAG` for that. The `build_both.sh` script uses `go-gtk-image-linuxarmhf` and `go-gtk-image-linuxarm64`. Again, avoid spaces and slashes.
+where:
+
+* PLATFORM is the platform name as Docker recognises it (e.g. `linux/armhf`)
+* OSNAME is such that builder-image/OSNAME_setup.sh exists (e.g. `alpine`)
+* GOLANGBASEIMAGE is one of the golang base images, e.g. golang:1.22.0-alpine3.19
+* TAGSUFFIX is a string to append to cross-builder image tags. It can be anything at all, but using a different tag suffix for different combinations of CPU/OS enables multiple cross-builder images to be installed at the same time.
+
+Docker images `go-cross-builder-TAGSUFFIX` and `gotk-cross-builder-TAGSUFFIX` will be created.
+
+## Notes for developers
+
+This repo contains two directories: one that's a generic cross-builder, and one that incorporates the GTK bindings.
 
 1. `builder-image`
-    * This is just a thin veneer over tonistiigi's xx to tailor it to specific Alpine versions, and to install some basic OS-level packages.
+    * This is just a thin veneer over tonistiigi's xx to tailor it to the specific OS, and to install some basic OS-level packages.
     * Usage:
 
       ```sh
       $ cd builder-image
-      $ docker build --platform $PLATFORM -t $CROSS_BUILDER_TAG .
+      $ docker build --platform $PLATFORM --build-arg OSNAME=$OSNAME --build-arg BASE_IMAGE=$BASE_IMAGE -t $CROSS_BUILDER_TAG .
       ```
+      
+      The file `OSNAME_setup.sh` must exist in the `builder-image` directory; currently, alpine and debian exist.
 
     * There's also a 'hello world' in this directory, to allow you to check that cross-compiling is working after you've built the Docker image:
 
       ```sh
+      $ cd builder-image/hello
       $ docker run -it --rm -v ./:/go/src -w /go/src $CROSS_BUILDER_TAG go build -o hello hello.go
       ```
 
@@ -52,17 +80,18 @@ You'll likely want to tag the second, too, so you can refer to it when building 
 
 2. `gtk-image`
     * This installs the GTK4 libraries (and prerequisites) and builds the `gotk4` bindings
+    * There are significant differences between the Alpine and Debian build steps, and there are therefore different Dockerfiles for the different operating systems. 
     * Usage:
 
       ```sh
       $ cd gtk-image
-      $ docker build --platform $PLATFORM --build-arg CROSSBUILDER=$CROSS_BUILDER_TAG -t $GTK_BUILDER_TAG .
+      $ docker build --platform $PLATFORM --build-arg CROSS_BUILDER=$CROSS_BUILDER_TAG -t $GTK_BUILDER_TAG -f Dockerfile_OSNAME .
       ```
 
     * This directory also contains a hello world, demonstrating the go/GTK4 bindings:
 
       ```sh
-      $ cd gtkdemo
+      $ cd gtk-image/gtkdemo
       $ docker run -it --rm -v ./:/go/src -w /go/src -e HOST=macOS $GTK_BUILDER_TAG ./build.sh
       ```
 

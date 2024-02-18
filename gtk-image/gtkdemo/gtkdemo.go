@@ -21,7 +21,7 @@ func main() {
 func activate(app *gtk.Application) {
 	window := gtk.NewApplicationWindow(app)
 	window.SetTitle("gotk4 Example")
-	window.SetChild(gtk.NewLabel("Hello from Go! (cross-compiled with a " + hostPlatform + " host!)"))
+	window.SetChild(gtk.NewLabel("Hello from Go! (cross-compiled from " + hostPlatform + "!)"))
 	window.SetDefaultSize(400, 300)
 	window.Show()
 }

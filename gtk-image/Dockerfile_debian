@@ -1,0 +1,36 @@
+# vim: ft=Dockerfile
+ARG CROSS_BUILDER=go-cross-builder
+FROM --platform=$BUILDPLATFORM ${CROSS_BUILDER} AS crossbuilder
+ARG TARGETPLATFORM
+COPY gtk-image-lib-builder /go/gtk-image-lib-builder
+
+RUN apt-get update
+RUN apt-get upgrade -y
+RUN apt-get install -y build-essential python3 python3-mako python3-markdown
+RUN xx-apt-get upgrade -y
+RUN xx-apt-get install -y libgtk-4-1 libc6-dev libglib2.0-dev gcc binutils libpango1.0-dev libgdk-pixbuf2.0-dev
+RUN xx-apt-get install -y libjpeg-dev libtiff-dev
+
+# Install gobject-introspection:armhf
+# Some of the dependencies in the downloaded packages are wrong for a cross-compiled world, but fixing it up is harder
+# than simply doing what we know is the right thing to do, and removing the dependency information from the .deb file.
+# See https://wiki.debian.org/Multiarch/CrossDependencies and https://bootstrap.debian.net/foreign_install.html
+
+RUN mkdir /tmp/debs; \
+    cd /tmp/debs; \
+    apt-get download gobject-introspection:$(xx-info pkg-arch); \
+    dpkg-deb --raw-extract gobject-introspection*.deb ./gobject-introspection;  \
+    sed -Ei '/^Depends:/ s/, *build-essential//; s/, *python3( *[()<>=.0-9~ a-z:-]*)//g; ' gobject-introspection/DEBIAN/control;  \
+    dpkg-deb --build gobject-introspection gobject-introspection_patched.deb;  \
+    dpkg -i gobject-introspection_patched.deb
+
+RUN xx-apt-get install -y libgtk-4-dev
+
+RUN echo "export PKG_CONFIG_PATH=/usr/lib/$(xx-info triple)/pkgconfig" >> /etc/profile.d/gotk_cross.sh; \
+    echo "export TARGETPLATFORM=${TARGETPLATFORM}" >> /etc/profile.d/gotk_cross.sh; \
+    echo "export CC=$(xx-info triple)-gcc" >> /etc/profile.d/gotk_cross.sh; \
+    echo "export LD_LIBRARY_PATH=/usr/lib/$(xx-info triple)" >> /etc/profile.d/gotk_cross.sh; \
+    echo "source /etc/profile.d/gotk_cross.sh" >> /root/.bashrc
+
+RUN . /etc/profile.d/gotk_cross.sh; cd /go/gtk-image-lib-builder; go mod tidy; go build -v .
+
