@@ -12,7 +12,7 @@ Stating the obvious, you'll need [Docker](https://www.docker.com/products/docker
 
 ## Supported CPUs/OSs
 
-Out-of-the-box, the currently supported platforms are `linux/armhf` and `linux/arm64` on Alpine Linux and Debian. The system is designed to be flexible, so other OSs are supported by following the detailed instructions. (Send a PR to incorporate the support into the mainline?)
+Out-of-the-box, the currently supported platforms are `linux/armhf` and `linux/arm64` on Alpine Linux 3.19 and Debian Bookworm. The system is designed to be flexible, so other OSs are supported by following the detailed instructions. (Send a PR to incorporate the support into the mainline?)
 
 ## Simple approach
 
@@ -116,6 +116,12 @@ This repo contains two directories: one that's a generic cross-builder, and one 
       cd gtk-image/gtkdemo
       docker run -it --rm -v ./:/go/src -w /go/src -e HOST=macOS $GTK_BUILDER_TAG ./build.sh
       ```
+
+## FAQ
+
+### The gotk bindings are rebuilt every time I build my application
+
+Check the version of gotk in `gtk-image` against the version used in your application: if they use a different version, then the bindings will need to be rebuilt for your application, and the results of that build will be lost when the Docker image exits. Change the version in `gtk-image` and rebuild the Docker image (and test it using the `gtkdemo` application). It'd be great if you send a PR or let me know if there's a newer version of the gotk bindings than is used in this repo.
 
 ## References
 
