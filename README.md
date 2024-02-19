@@ -66,7 +66,7 @@ This repo contains two directories: one that's a generic cross-builder, and one 
       $ cd builder-image
       $ docker build --platform $PLATFORM --build-arg OSNAME=$OSNAME --build-arg BASE_IMAGE=$BASE_IMAGE -t $CROSS_BUILDER_TAG .
       ```
-      
+
       The file `OSNAME_setup.sh` must exist in the `builder-image` directory; currently, alpine and debian exist.
 
     * There's also a 'hello world' in this directory, to allow you to check that cross-compiling is working after you've built the Docker image:
@@ -80,7 +80,7 @@ This repo contains two directories: one that's a generic cross-builder, and one 
 
 2. `gtk-image`
     * This installs the GTK4 libraries (and prerequisites) and builds the `gotk4` bindings
-    * There are significant differences between the Alpine and Debian build steps, and there are therefore different Dockerfiles for the different operating systems. 
+    * There are significant differences between the Alpine and Debian build steps, and there are therefore different Dockerfiles for the different operating systems.
     * Usage:
 
       ```sh
@@ -101,4 +101,3 @@ As well as the repositories referenced above, the following sources proved usefu
 
 * <https://stackoverflow.com/a/76440207/13220928>
 * <https://medium.com/@tonistiigi/faster-multi-platform-builds-dockerfile-cross-compilation-guide-part-1-ec087c719eaf>
- 
