@@ -1,6 +1,6 @@
 #! /bin/sh
 
-[ -f /etc/profile.d/gotk_cross.sh ] && . /etc/profile.d/gotk_cross.sh
+[ -f /etc/profile.d/go_cross.sh ] && . /etc/profile.d/go_cross.sh
 
 go mod tidy
 # Use `docker run ... -e HOST=yourHostPlatformOrName ...`

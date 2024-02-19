@@ -54,6 +54,28 @@ where:
 
 Docker images `go-cross-builder-TAGSUFFIX` and `gotk-cross-builder-TAGSUFFIX` will be created.
 
+## Using the Docker images
+
+The image containing the gotk libraries is probably the image you want to use. There is a shell script in the Debian image that sets up the environment for cross-compiling, and you may need to explicitly include that in your scripts.
+
+So, a typical usage is to have a build script that reads that environment script if it exists (because it's not needed for Alpine Linux), and then perform a go build as normal:
+
+```sh
+#! /bin/sh
+[ -f /etc/profile.d/go_cross.sh ] && . /etc/profile.d/go_cross.sh
+
+go mod tidy
+go build .
+```
+
+The Docker command-line to perform the build is then:
+
+```sh
+docker run -it --rm -v .:/go/src -w /go/src gotk-cross-builder-bookworm-arm64 ./build.sh
+```
+
+(changing `gotk-cross-builder-bookworm-arm64` for whichever particular platform you want to build for)
+
 ## Notes for developers
 
 This repo contains two directories: one that's a generic cross-builder, and one that incorporates the GTK bindings.

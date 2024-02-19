@@ -21,12 +21,17 @@ build_platform() {
   docker build --platform $PLATFORM --build-arg OSNAME="$OSNAME" --build-arg BASE_IMAGE="$BASE_IMAGE" -t "$CROSS_BUILDER_TAG" .
   popd > /dev/null
 
-  # Step 2: Use the builder image to build the GTK libraries
+  # Step 2: Build the hello world application to demonstrate the builder image
+  pushd builder-image/hello > /dev/null
+  docker run -it --rm -v ./:/go/src -v ./build/$TAGSUFFIX:/go/output -w /go/src "$CROSS_BUILDER_TAG" ./build.sh
+  popd > /dev/null
+
+  # Step 3: Use the builder image to build the GTK libraries
   pushd gtk-image > /dev/null
   docker build --platform $PLATFORM --build-arg CROSS_BUILDER="$CROSS_BUILDER_TAG" -t "$GOTK_BUILDER_TAG" -f Dockerfile_$OSNAME .
   popd > /dev/null
 
-  # Step 3: Use the GTK libraries to build the example image
+  # Step 4: Use the GTK libraries to build the example application
   pushd gtk-image/gtkdemo > /dev/null
   CPU=${PLATFORM##*/}
   docker run -it --rm -v ./:/go/src -v ./build/$TAGSUFFIX:/go/output -w /go/src -e HOST="$(hostname)-$(uname)" "$GOTK_BUILDER_TAG" ./build.sh
