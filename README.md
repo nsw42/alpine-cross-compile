@@ -18,7 +18,7 @@ Out-of-the-box, the currently supported platforms are `linux/armhf` and `linux/a
 
 If you just want to build an application that relies on these Docker images, then invoke the build script specifying your platform (i.e. CPU and OS combination):
 
-```
+```sh
 cd alpine-cross-compile
 ./build.sh CPU OS
 ```
@@ -40,7 +40,7 @@ Docker images `go-cross-builder-OS-CPU` and `gotk-cross-builder-OS-CPU` will be 
 
 If the simple approach doesn't work for you - e.g. because you want to build an unsupported combination of CPU and OS - then it's probably possible, by passing additional arguments to the build script.
 
-```
+```sh
 cd alpine-cross-compile
 ./build.sh PLATFORM OSNAME GOLANGBASEIMAGE TAGSUFFIX
 ```
@@ -63,8 +63,8 @@ This repo contains two directories: one that's a generic cross-builder, and one 
     * Usage:
 
       ```sh
-      $ cd builder-image
-      $ docker build --platform $PLATFORM --build-arg OSNAME=$OSNAME --build-arg BASE_IMAGE=$BASE_IMAGE -t $CROSS_BUILDER_TAG .
+      cd builder-image
+      docker build --platform $PLATFORM --build-arg OSNAME=$OSNAME --build-arg BASE_IMAGE=$BASE_IMAGE -t $CROSS_BUILDER_TAG .
       ```
 
       The file `OSNAME_setup.sh` must exist in the `builder-image` directory; currently, alpine and debian exist.
@@ -72,8 +72,8 @@ This repo contains two directories: one that's a generic cross-builder, and one 
     * There's also a 'hello world' in this directory, to allow you to check that cross-compiling is working after you've built the Docker image:
 
       ```sh
-      $ cd builder-image/hello
-      $ docker run -it --rm -v ./:/go/src -w /go/src $CROSS_BUILDER_TAG go build -o hello hello.go
+      cd builder-image/hello
+      docker run -it --rm -v ./:/go/src -w /go/src $CROSS_BUILDER_TAG go build -o hello hello.go
       ```
 
       then scp the resulting binary (`hello`) to the target platform, run it and check it prints `Hello world`.
@@ -84,15 +84,15 @@ This repo contains two directories: one that's a generic cross-builder, and one 
     * Usage:
 
       ```sh
-      $ cd gtk-image
-      $ docker build --platform $PLATFORM --build-arg CROSS_BUILDER=$CROSS_BUILDER_TAG -t $GTK_BUILDER_TAG -f Dockerfile_OSNAME .
+      cd gtk-image
+      docker build --platform $PLATFORM --build-arg CROSS_BUILDER=$CROSS_BUILDER_TAG -t $GTK_BUILDER_TAG -f Dockerfile_OSNAME .
       ```
 
     * This directory also contains a hello world, demonstrating the go/GTK4 bindings:
 
       ```sh
-      $ cd gtk-image/gtkdemo
-      $ docker run -it --rm -v ./:/go/src -w /go/src -e HOST=macOS $GTK_BUILDER_TAG ./build.sh
+      cd gtk-image/gtkdemo
+      docker run -it --rm -v ./:/go/src -w /go/src -e HOST=macOS $GTK_BUILDER_TAG ./build.sh
       ```
 
 ## References
