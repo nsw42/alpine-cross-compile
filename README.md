@@ -123,6 +123,12 @@ This repo contains two directories: one that's a generic cross-builder, and one 
 
 Check the version of gotk in `gtk-image` against the version used in your application: if they use a different version, then the bindings will need to be rebuilt for your application, and the results of that build will be lost when the Docker image exits. Change the version in `gtk-image` and rebuild the Docker image (and test it using the `gtkdemo` application). It'd be great if you send a PR or let me know if there's a newer version of the gotk bindings than is used in this repo.
 
+### My application rebuilds from scratch every time, slowing my development cycle
+
+If you need to frequently recompile a non-trivial application for the target environment, rather than simply doing occasional builds for distribution, you will want to preserve the cache of additional packages, to minimise build times.
+
+For now, this is best achieved with a custom Docker image that further extends the gotk-cross-builder image(s), and use that for your builds.
+
 ## References
 
 As well as the repositories referenced above, the following sources proved useful along the way:
