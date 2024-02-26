@@ -129,6 +129,14 @@ If you need to frequently recompile a non-trivial application for the target env
 
 For now, this is best achieved with a custom Docker image that further extends the gotk-cross-builder image(s), and use that for your builds.
 
+### Can I reduce my binary size
+
+See, for example, <https://stackoverflow.com/questions/3861634/how-to-reduce-go-compiled-file-size>
+
+Try the build command `go build -ldflags "-s -w" .`
+
+This reduces the size of an example gotk application from ~22MB to ~15MB.
+
 ## References
 
 As well as the repositories referenced above, the following sources proved useful along the way:
