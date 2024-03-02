@@ -6,6 +6,12 @@ This repository supports GTK-based golang applications for the Raspberry Pi. Bui
 
 It supports both 32-bit (`armhf`) and 64-bit (`arm64`) ARM builds. It should be possible to get other platforms to work too, with some minor tweaks.
 
+## Other installed utilities
+
+In addition to the stated gotk4 bindings, the following utilities are also included in a built image:
+
+- [cyclonedx-gomod](https://github.com/CycloneDX/cyclonedx-gomod) to support creating SBOMs for built applications
+
 ## Prerequisites
 
 Stating the obvious, you'll need [Docker](https://www.docker.com/products/docker-desktop/).
@@ -25,8 +31,8 @@ cd alpine-cross-compile
 
 where:
 
-* CPU is either `armhf` or `arm64`
-* OS is one of `alpine3.19` or `bookworm`
+- CPU is either `armhf` or `arm64`
+- OS is one of `alpine3.19` or `bookworm`
 
 If you don't specify a platform, it will build for all four combinations of (`linux/armhf`,`linux/arm64`)x(Alpine 3.19,Debian Bookworm) platforms.
 
@@ -47,10 +53,10 @@ cd alpine-cross-compile
 
 where:
 
-* PLATFORM is the platform name as Docker recognises it (e.g. `linux/armhf`)
-* OSNAME is such that builder-image/OSNAME_setup.sh exists (e.g. `alpine`)
-* GOLANGBASEIMAGE is one of the golang base images, e.g. golang:1.22.0-alpine3.19
-* TAGSUFFIX is a string to append to cross-builder image tags. It can be anything at all, but using a different tag suffix for different combinations of CPU/OS enables multiple cross-builder images to be installed at the same time.
+- PLATFORM is the platform name as Docker recognises it (e.g. `linux/armhf`)
+- OSNAME is such that builder-image/OSNAME_setup.sh exists (e.g. `alpine`)
+- GOLANGBASEIMAGE is one of the golang base images, e.g. golang:1.22.0-alpine3.19
+- TAGSUFFIX is a string to append to cross-builder image tags. It can be anything at all, but using a different tag suffix for different combinations of CPU/OS enables multiple cross-builder images to be installed at the same time.
 
 Docker images `go-cross-builder-TAGSUFFIX` and `gotk-cross-builder-TAGSUFFIX` will be created.
 
@@ -81,8 +87,8 @@ docker run -it --rm -v .:/go/src -w /go/src gotk-cross-builder-bookworm-arm64 ./
 This repo contains two directories: one that's a generic cross-builder, and one that incorporates the GTK bindings.
 
 1. `builder-image`
-    * This is just a thin veneer over tonistiigi's xx to tailor it to the specific OS, and to install some basic OS-level packages.
-    * Usage:
+    - This is just a thin veneer over tonistiigi's xx to tailor it to the specific OS, and to install some basic OS-level packages, including `cyclonedx-gomod`.
+    - Usage:
 
       ```sh
       cd builder-image
@@ -91,7 +97,9 @@ This repo contains two directories: one that's a generic cross-builder, and one 
 
       The file `OSNAME_setup.sh` must exist in the `builder-image` directory; currently, alpine and debian exist.
 
-    * There's also a 'hello world' in this directory, to allow you to check that cross-compiling is working after you've built the Docker image:
+      Also note that it relies on the appropriate (for your host platform) version of cyclonedx-gomod having been downloaded and extracted from the tar archive. See `build.sh` for more details.
+
+    - There's also a 'hello world' in this directory, to allow you to check that cross-compiling is working after you've built the Docker image:
 
       ```sh
       cd builder-image/hello
@@ -101,16 +109,16 @@ This repo contains two directories: one that's a generic cross-builder, and one 
       then scp the resulting binary (`hello`) to the target platform, run it and check it prints `Hello world`.
 
 2. `gtk-image`
-    * This installs the GTK4 libraries (and prerequisites) and builds the `gotk4` bindings
-    * There are significant differences between the Alpine and Debian build steps, and there are therefore different Dockerfiles for the different operating systems.
-    * Usage:
+    - This installs the GTK4 libraries (and prerequisites) and builds the `gotk4` bindings
+    - There are significant differences between the Alpine and Debian build steps, and there are therefore different Dockerfiles for the different operating systems.
+    - Usage:
 
       ```sh
       cd gtk-image
       docker build --platform $PLATFORM --build-arg CROSS_BUILDER=$CROSS_BUILDER_TAG -t $GTK_BUILDER_TAG -f Dockerfile_OSNAME .
       ```
 
-    * This directory also contains a hello world, demonstrating the go/GTK4 bindings:
+    - This directory also contains a hello world, demonstrating the go/GTK4 bindings:
 
       ```sh
       cd gtk-image/gtkdemo
@@ -141,5 +149,5 @@ This reduces the size of an example gotk application from ~22MB to ~15MB.
 
 As well as the repositories referenced above, the following sources proved useful along the way:
 
-* <https://stackoverflow.com/a/76440207/13220928>
-* <https://medium.com/@tonistiigi/faster-multi-platform-builds-dockerfile-cross-compilation-guide-part-1-ec087c719eaf>
+- <https://stackoverflow.com/a/76440207/13220928>
+- <https://medium.com/@tonistiigi/faster-multi-platform-builds-dockerfile-cross-compilation-guide-part-1-ec087c719eaf>

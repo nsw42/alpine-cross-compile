@@ -18,6 +18,15 @@ build_platform() {
 
   # Step 1: Build the builder image
   pushd builder-image > /dev/null
+  if [ ! -f cyclonedx-gomod ]; then
+    if [ "$(arch)" = "arm64" ]; then
+      DOWNLOAD_ARCH=arm64
+    else
+      DOWNLOAD_ARCH=amd64
+    fi
+    curl -LO https://github.com/CycloneDX/cyclonedx-gomod/releases/download/v1.6.0/cyclonedx-gomod_1.6.0_linux_${DOWNLOAD_ARCH}.tar.gz
+    tar xf cyclonedx-gomod_1.6.0_linux_${DOWNLOAD_ARCH}.tar.gz cyclonedx-gomod
+  fi
   docker build --platform $PLATFORM --build-arg OSNAME="$OSNAME" --build-arg BASE_IMAGE="$BASE_IMAGE" -t "$CROSS_BUILDER_TAG" .
   popd > /dev/null
 

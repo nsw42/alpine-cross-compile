@@ -11,4 +11,6 @@ ENV CGO_ENABLED=1
 ARG OSNAME
 COPY --chmod=777 ${OSNAME}_setup.sh /usr/local/bin/os_setup_builder_image.sh
 RUN /usr/local/bin/os_setup_builder_image.sh
+# NB. This relies on build.sh having already downloaded and unpacked the (correct) release tgz
+ADD cyclonedx-gomod /usr/local/bin/
 RUN xx-go --wrap
